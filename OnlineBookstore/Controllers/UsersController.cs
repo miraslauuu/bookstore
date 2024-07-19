@@ -1,84 +1,63 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineBookstore.Data.Repositories;
+using OnlineBookstore.Services;
 using OnlineBookstore.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace OnlineBookstore.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
 
-        public UsersController(IUserRepository userRepository)
+        public UsersController(IUserService userService)
         {
-            _userRepository = userRepository;
+            _userService = userService;
         }
 
         [HttpGet]
-        public async Task<IEnumerable<User>> GetUsers()
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _userRepository.GetAllUsers();
+            var users = await _userService.GetAllUsers();
+            return Ok(users);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
-            var user = await _userRepository.GetUserById(id);
+            var user = await _userService.GetUserById(id);
             if (user == null)
             {
                 return NotFound();
             }
-
-            return user;
+            return Ok(user);
         }
 
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult> AddUser(User user)
         {
-            await _userRepository.AddUser(user);
-            return CreatedAtAction("GetUser", new { id = user.UserID }, user);
+            await _userService.AddUser(user);
+            return CreatedAtAction(nameof(GetUser), new { id = user.UserID }, user);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> UpdateUser(int id, User user)
         {
             if (id != user.UserID)
             {
                 return BadRequest();
             }
 
-            try
-            {
-                await _userRepository.UpdateUser(user);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (await _userRepository.GetUserById(id) == null)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _userService.UpdateUser(user);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _userRepository.GetUserById(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            await _userRepository.DeleteUser(id);
+            await _userService.DeleteUser(id);
             return NoContent();
         }
     }

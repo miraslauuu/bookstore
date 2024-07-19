@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineBookstore.Data.Repositories;
 using OnlineBookstore.Models;
+using OnlineBookstore.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,24 +10,24 @@ namespace OnlineBookstore.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
-        private readonly IOrderRepository _orderRepository;
+        private readonly IOrderService _orderService;
 
-        public OrdersController(IOrderRepository orderRepository)
+        public OrdersController(IOrderService orderService)
         {
-            _orderRepository = orderRepository;
+            _orderService = orderService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders()
         {
-            var orders = await _orderRepository.GetAllOrders();
+            var orders = await _orderService.GetAllOrders();
             return Ok(orders);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Order>> GetOrder(int id)
+        public async Task<ActionResult<Order>> GetOrderById(int id)
         {
-            var order = await _orderRepository.GetOrderById(id);
+            var order = await _orderService.GetOrderById(id);
             if (order == null)
             {
                 return NotFound();
@@ -38,26 +38,32 @@ namespace OnlineBookstore.Controllers
         [HttpPost]
         public async Task<ActionResult> AddOrder(Order order)
         {
-            await _orderRepository.AddOrder(order);
-            return CreatedAtAction(nameof(GetOrder), new { id = order.OrderID }, order);
+            await _orderService.AddOrder(order);
+            return CreatedAtAction(nameof(GetOrderById), new { id = order.OrderID }, order);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrder(int id, Order order)
+        public async Task<ActionResult> UpdateOrder(int id, Order order)
         {
             if (id != order.OrderID)
             {
                 return BadRequest();
             }
 
-            await _orderRepository.UpdateOrder(order);
+            await _orderService.UpdateOrder(order);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteOrder(int id)
+        public async Task<ActionResult> DeleteOrder(int id)
         {
-            await _orderRepository.DeleteOrder(id);
+            var order = await _orderService.GetOrderById(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            await _orderService.DeleteOrder(id);
             return NoContent();
         }
     }

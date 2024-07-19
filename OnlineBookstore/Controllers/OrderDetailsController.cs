@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineBookstore.Data.Repositories;
+using OnlineBookstore.Services;
 using OnlineBookstore.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,24 +10,24 @@ namespace OnlineBookstore.Controllers
     [ApiController]
     public class OrderDetailsController : ControllerBase
     {
-        private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly IOrderDetailService _orderDetailService;
 
-        public OrderDetailsController(IOrderDetailRepository orderDetailRepository)
+        public OrderDetailsController(IOrderDetailService orderDetailService)
         {
-            _orderDetailRepository = orderDetailRepository;
+            _orderDetailService = orderDetailService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderDetail>>> GetOrderDetails()
         {
-            var orderDetails = await _orderDetailRepository.GetAllOrderDetails();
+            var orderDetails = await _orderDetailService.GetAllOrderDetails();
             return Ok(orderDetails);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDetail>> GetOrderDetail(int id)
         {
-            var orderDetail = await _orderDetailRepository.GetOrderDetailById(id);
+            var orderDetail = await _orderDetailService.GetOrderDetailById(id);
             if (orderDetail == null)
             {
                 return NotFound();
@@ -38,7 +38,7 @@ namespace OnlineBookstore.Controllers
         [HttpPost]
         public async Task<ActionResult> AddOrderDetail(OrderDetail orderDetail)
         {
-            await _orderDetailRepository.AddOrderDetail(orderDetail);
+            await _orderDetailService.AddOrderDetail(orderDetail);
             return CreatedAtAction(nameof(GetOrderDetail), new { id = orderDetail.OrderDetailID }, orderDetail);
         }
 
@@ -50,14 +50,14 @@ namespace OnlineBookstore.Controllers
                 return BadRequest();
             }
 
-            await _orderDetailRepository.UpdateOrderDetail(orderDetail);
+            await _orderDetailService.UpdateOrderDetail(orderDetail);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrderDetail(int id)
         {
-            await _orderDetailRepository.DeleteOrderDetail(id);
+            await _orderDetailService.DeleteOrderDetail(id);
             return NoContent();
         }
     }
