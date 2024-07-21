@@ -1,16 +1,18 @@
 using Microsoft.EntityFrameworkCore;
-using OnlineBookstoreData;
+using OnlineBookstore.Data;
+using OnlineBookstore.Data.Repositories;
+using OnlineBookstore.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddRazorPages();
-
 builder.Services.AddControllersWithViews();
 
-// Configure DbContext with connection string from appsetings.json
-builder.Services.AddDbContext<OnlineBookstoreContext>(options => options.UserSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Configure DbContext with connection string from appsettings.json
+builder.Services.AddDbContext<OnlineBookstoreContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -47,7 +49,6 @@ app.MapRazorPages();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}";
-)
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
